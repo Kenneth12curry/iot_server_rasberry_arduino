@@ -32,21 +32,24 @@ os.makedirs(SKETCH_DIR, exist_ok=True)
 def generate_arduino_code(command, speed=200):
     """
     Génère le code Arduino complet avec les bibliothèques et fonctions nécessaires
+    pour contrôler deux servomoteurs - configuration spécifique:
+    - Moteur droit: pins 4 (IN1) et 5 (IN2), sorties OUT1 et OUT2
+    - Moteur gauche: pins 6 (IN3) et 7 (IN4), sorties OUT3 et OUT4
     """
     # En-tête avec importations et définitions des broches
     code = """// Code généré automatiquement pour contrôle de voiture
 #include <Arduino.h>
 
-// Définition des broches
-#define PIN_MOTEUR_DROITE_AVANT 9
-#define PIN_MOTEUR_DROITE_ARRIERE 10
-#define PIN_MOTEUR_GAUCHE_AVANT 6
-#define PIN_MOTEUR_GAUCHE_ARRIERE 7
+// Définition des broches pour le pilote de moteur
+#define PIN_MOTEUR_DROITE_AVANT 4   // IN1 pour le moteur droit (OUT1)
+#define PIN_MOTEUR_DROITE_ARRIERE 5 // IN2 pour le moteur droit (OUT2)
+#define PIN_MOTEUR_GAUCHE_AVANT 6   // IN3 pour le moteur gauche (OUT3)
+#define PIN_MOTEUR_GAUCHE_ARRIERE 7 // IN4 pour le moteur gauche (OUT4)
 
 // Variables globales
 int vitesse = {speed}; // Valeur PWM entre 0-255
 
-void setup() {
+void setup() {{
   // Initialisation de la communication série
   Serial.begin(9600);
   Serial.println("Initialisation du contrôleur de voiture");
@@ -64,51 +67,75 @@ void setup() {
   analogWrite(PIN_MOTEUR_GAUCHE_ARRIERE, 0);
   
   Serial.println("Prêt à recevoir des commandes");
-}
+}}
 
 """.format(speed=speed)
 
     # Ajouter des fonctions utilitaires pour chaque mouvement
     code += """
-// Fonctions de mouvement
+// Fonctions de mouvement pour les moteurs DC
 void avancer(int vitesse_pwm) {
+  // Moteur droit - avant
   analogWrite(PIN_MOTEUR_DROITE_AVANT, vitesse_pwm);
   analogWrite(PIN_MOTEUR_DROITE_ARRIERE, 0);
+  
+  // Moteur gauche - avant
   analogWrite(PIN_MOTEUR_GAUCHE_AVANT, vitesse_pwm);
   analogWrite(PIN_MOTEUR_GAUCHE_ARRIERE, 0);
-  Serial.println("Avance");
+  
+  Serial.print("Avance à la vitesse: ");
+  Serial.println(vitesse_pwm);
 }
 
 void reculer(int vitesse_pwm) {
+  // Moteur droit - arrière
   analogWrite(PIN_MOTEUR_DROITE_AVANT, 0);
   analogWrite(PIN_MOTEUR_DROITE_ARRIERE, vitesse_pwm);
+  
+  // Moteur gauche - arrière
   analogWrite(PIN_MOTEUR_GAUCHE_AVANT, 0);
   analogWrite(PIN_MOTEUR_GAUCHE_ARRIERE, vitesse_pwm);
-  Serial.println("Recule");
+  
+  Serial.print("Recule à la vitesse: ");
+  Serial.println(vitesse_pwm);
 }
 
 void arreter() {
+  // Arrêt complet des deux moteurs
   analogWrite(PIN_MOTEUR_DROITE_AVANT, 0);
   analogWrite(PIN_MOTEUR_DROITE_ARRIERE, 0);
   analogWrite(PIN_MOTEUR_GAUCHE_AVANT, 0);
   analogWrite(PIN_MOTEUR_GAUCHE_ARRIERE, 0);
-  Serial.println("Arrêt");
+  
+  Serial.println("Arrêt des moteurs");
 }
 
 void tournerDroite(int vitesse_pwm) {
+  // Pour tourner à droite:
+  // - Le moteur gauche avance
+  // - Le moteur droit recule ou est arrêté
+  
   analogWrite(PIN_MOTEUR_DROITE_AVANT, 0);
   analogWrite(PIN_MOTEUR_DROITE_ARRIERE, vitesse_pwm);
   analogWrite(PIN_MOTEUR_GAUCHE_AVANT, vitesse_pwm);
   analogWrite(PIN_MOTEUR_GAUCHE_ARRIERE, 0);
-  Serial.println("Tourne à droite");
+  
+  Serial.print("Tourne à droite à la vitesse: ");
+  Serial.println(vitesse_pwm);
 }
 
 void tournerGauche(int vitesse_pwm) {
+  // Pour tourner à gauche:
+  // - Le moteur droit avance
+  // - Le moteur gauche recule ou est arrêté
+  
   analogWrite(PIN_MOTEUR_DROITE_AVANT, vitesse_pwm);
   analogWrite(PIN_MOTEUR_DROITE_ARRIERE, 0);
   analogWrite(PIN_MOTEUR_GAUCHE_AVANT, 0);
   analogWrite(PIN_MOTEUR_GAUCHE_ARRIERE, vitesse_pwm);
-  Serial.println("Tourne à gauche");
+  
+  Serial.print("Tourne à gauche à la vitesse: ");
+  Serial.println(vitesse_pwm);
 }
 """
 
