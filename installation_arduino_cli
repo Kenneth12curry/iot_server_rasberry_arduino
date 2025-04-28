@@ -1,0 +1,8 @@
+---Sur la Pi, installe arduino-cli pour compiler et téléverser sans interface graphique.-------
+curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+
+-----Puis configure-le :----------------
+
+arduino-cli config init
+arduino-cli core update-index
+arduino-cli core install arduino:avr
